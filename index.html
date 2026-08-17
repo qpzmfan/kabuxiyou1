@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>卡布西游自定义种族值计算器V1.9</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: '微软雅黑', '宋体', Arial, Helvetica, sans-serif;
+        }
+        body {
+            background: #4294DC;
+            min-height: 100vh;
+            margin: 0;
+            padding: 25px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .calculator-card {
+            max-width: 1280px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 22px 20px;
+            box-shadow: 0 6px 12px rgba(0, 10, 30, 0.5);
+            border: 1px solid #4294DC;
+        }
+        h1 {
+            margin: 0 0 4px 0;
+            font-weight: 600;
+            font-size: 1.9rem;
+            color: #00000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: 0.2px;
+        }
+        h1 span {
+            background: #ebf3ff;
+            color: #123b77;
+            font-size: 0.9rem;
+            padding: 4px 18px;
+            border-radius: 30px;
+            font-weight: 400;
+            border: 1px solid #9bbae6;
+        }
+        .sub {
+            color: #21539b;
+            margin-bottom: 22px;
+            font-size: 0.95rem;
+            border-left: 5px solid #2a6bc1;
+            padding-left: 15px;
+            background: #e7f0ff;
+            border-radius: 0 6px 6px 0;
+            line-height: 2;
+        }
+        /* 全局操作栏 */
+        .global-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+            background: #eef4fd;
+            border-radius: 8px;
+            padding: 16px 20px;
+            align-items: center;
+            border: 1px solid #b3c9e9;
+        }
+        .btn {
+            background: white;
+            border: 1px solid #2561a9;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 500;
+            color: #000000;
+            cursor: pointer;
+            box-shadow: 0 2px 5px #b7cef0;
+            transition: 0.1s;
+            font-size: 0.9rem;
+        }
+        .btn:hover {
+            background: #ebf2ff;
+            border-color: #4294DC;
+        }
+        .btn.primary {
+            background: #4294DC;
+            color: white;
+            border-color: #4294DC;
+        }
+        .btn.primary:hover {
+            background: #4294DC;
+        }
+        .btn.small {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+        }
+        /* 卡片容器 */
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        /* 单个卡片 */
+        .pokemon-card {
+            background: #f4f9ff;
+            border: 1px solid #b9cfec;
+            border-radius: 8px;
+            padding: 12px 12px 8px 12px;
+            box-shadow: 0 2px 6px rgba(0, 30, 70, 0.1);
+        }
+        .card-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 10px;
+            align-items: center;
+            margin-bottom: 8px;
+            background: #e3edfe;
+            padding: 8px 10px;
+            border-radius: 6px;
+        }
+        .card-header input, .card-header select {
+            background: white;
+            border: 1px solid #7f9fd5;
+            border-radius: 4px;
+            padding: 4px 6px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .card-header input[type=checkbox] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+        }
+        .card-header .nature-dual {
+            display: flex;
+            gap: 4px;
+            background: transparent;
+            padding: 0;
+        }
+        .card-header .nature-dual select {
+            width: 80px;
+        }
+        .stat-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 10px;
+            align-items: center;
+            margin: 6px 0;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 6px;
+        }
+        .stat-label {
+            font-weight: 700;
+            font-size: 1.1rem;
+            min-width: 40px;
+            color: #4294DC;
+            cursor: pointer;
+            border-bottom: 2px dotted #8fb0dd;
+            padding-bottom: 2px;
+        }
+        .stat-label:hover {
+            color: #d45d00;
+        }
+        .input-mini {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .input-mini span {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #1a4180;
+            margin-left: 4px;
+            text-transform: uppercase;
+        }
+        .input-mini input {
+            width: 55px;
+            background: #ffffff;
+            border: 1px solid #aec4e8;
+            border-radius: 4px;
+            padding: 4px 4px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .star-level {
+            display: inline-block;
+            font-size: 0.9rem;
+            margin-left: 4px;
+            letter-spacing: 1px;
+        }
+        .result-badge {
+            background: #4294DC;
+            color: white;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            line-height: 1.2;
+            min-width: 70px;
+            text-align: center;
+            border: 1px solid #102e60;
+        }
+        .result-badge small {
+            font-size: 0.55rem;
+            font-weight: 400;
+            display: block;
+            color: #e0ecff;
+        }
+        .limit-badge {
+            font-size: 0.65rem;
+            color: #a0b9d9;
+            min-width: 45px;
+        }
+        .field-multiplier, .fraction-box {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #eef4fd;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+        .field-multiplier input, .fraction-box input {
+            width: 45px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            border: 1px solid #aec4e8;
+        }
+        .remove-tip {
+            color: #b44900;
+            font-weight: 500;
+            background: #ffece0;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .ev-warning {
+            background: #fff9e6;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .total-race {
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: #dde9fd;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        .footer-note {
+            margin-top: 25px;
+            background: #e3edfe;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            color: #4294DC;
+            border: 1px solid #b2c9ea;
+        }
+    </style>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+	<script src="https://news.4399.com/kabuxiyou/js/ygjsq/names.js" charset="gbk"></script>
+	<script src="https://news.4399.com/kabuxiyou/js/ygjsq/xb_names.js" charset="gbk"></script>
+</head>
+<body>
+<div class="calculator-card">
+    <h1>卡布西游自定义种族值计算器<span id="version">V1.9</span> <span>作者：匿名卡布</span></h1>
+    <div class="sub">1.点击属性名查看去除该属性后的种族总和；</div>
+	<div class="sub">2.复制信息主要用于更新妖怪数据库表格，导出主要用于保存妖怪配置。数据库与妖怪配置表格都支持导入。</div>
+
+    <!-- 卡片容器 -->
+    <div id="cardsContainer" class="cards-container"></div>
+
+    <!-- 全局操作栏 (移至卡片下方) -->
+    <div class="global-bar">
+		<button class="btn" id="loadOfficialBtn"> 官方数据加载</button>
+        <button class="btn primary" id="addCardBtn">+ 添加卡片</button>
+        <button class="btn" id="importExcelBtn">📥 导入妖怪(Excel)</button>
+        <button class="btn" id="exportSelectedBtn">📤 导出勾选的妖怪</button>
+        <!-- 新增：全选/全不选按钮 -->
+        <button class="btn" id="toggleSelectAllBtn">✓ 全选/全不选</button>
+        <button class="btn" id="clearAllCardsBtn">🗑️ 清空所有卡片</button>
+    </div>
+
+    <!-- 底部公式说明 -->
+    <div class="footer-note">
+        HP = [ (种族×2 + 星星数值 + 修为/4) × 等级 ÷ 100 ] + 等级 + 10 + 灵玉 &nbsp;&nbsp; 其他 = [ ( (种族×2 + 星星数值 + 修为/4) × 等级 ÷ 100 + 5 ) × 性格 ] + 灵玉
+    </div>
+</div>
+
+<script>
+(function() {
+    // ---------- 原有常量与函数 ----------
+    const natureMap = {
+        '孤僻':  { atk:1.1, def:0.9, spa:1.0, spd:1.0, spe:1.0, up:'atk', down:'def' },
+        '固执':  { atk:1.1, def:1.0, spa:0.9, spd:1.0, spe:1.0, up:'atk', down:'spa' },
+        '调皮':  { atk:1.1, def:1.0, spa:1.0, spd:0.9, spe:1.0, up:'atk', down:'spd' },
+        '勇敢':  { atk:1.1, def:1.0, spa:1.0, spd:1.0, spe:0.9, up:'atk', down:'spe' },
+        '坦率':  { atk:1.0, def:1.0, spa:1.0, spd:1.0, spe:1.0, up:null, down:null },
+        '大胆':  { atk:0.9, def:1.1, spa:1.0, spd:1.0, spe:1.0, up:'def', down:'atk' },
+        '淘气':  { atk:1.0, def:1.1, spa:0.9, spd:1.0, spe:1.0, up:'def', down:'spa' },
+        '无虑':  { atk:1.0, def:1.1, spa:1.0, spd:0.9, spe:1.0, up:'def', down:'spd' },
+        '悠闲':  { atk:1.0, def:1.1, spa:1.0, spd:1.0, spe:0.9, up:'def', down:'spe' },
+        '平静':  { atk:1.0, def:1.0, spa:1.0, spd:1.0, spe:1.0, up:null, down:null },
+        '保守':  { atk:0.9, def:1.0, spa:1.1, spd:1.0, spe:1.0, up:'spa', down:'atk' },
+        '稳重':  { atk:1.0, def:0.9, spa:1.1, spd:1.0, spe:1.0, up:'spa', down:'def' },
+        '马虎':  { atk:1.0, def:1.0, spa:1.1, spd:0.9, spe:1.0, up:'spa', down:'spd' },
+        '冷静':  { atk:1.0, def:1.0, spa:1.1, spd:1.0, spe:0.9, up:'spa', down:'spe' },
+        '认真':  { atk:1.0, def:1.0, spa:1.0, spd:1.0, spe:1.0, up:null, down:null },
+        '沉着':  { atk:0.9, def:1.0, spa:1.0, spd:1.1, spe:1.0, up:'spd', down:'atk' },
+        '温顺':  { atk:1.0, def:0.9, spa:1.0, spd:1.1, spe:1.0, up:'spd', down:'def' },
+        '慎重':  { atk:1.0, def:1.0, spa:0.9, spd:1.1, spe:1.0, up:'spd', down:'spa' },
+        '狂妄':  { atk:1.0, def:1.0, spa:1.0, spd:1.1, spe:0.9, up:'spd', down:'spe' },
+        '实干':  { atk:1.0, def:1.0, spa:1.0, spd:1.0, spe:1.0, up:null, down:null },
+        '胆小':  { atk:0.9, def:1.0, spa:1.0, spd:1.0, spe:1.1, up:'spe', down:'atk' },
+        '急躁':  { atk:1.0, def:0.9, spa:1.0, spd:1.0, spe:1.1, up:'spe', down:'def' },
+        '开朗':  { atk:1.0, def:1.0, spa:0.9, spd:1.0, spe:1.1, up:'spe', down:'spa' },
+        '天真':  { atk:1.0, def:1.0, spa:1.0, spd:0.9, spe:1.1, up:'spe', down:'spd' },
+        '浮躁':  { atk:1.0, def:1.0, spa:1.0, spd:1.0, spe:1.0, up:null, down:null }
+    };
+    const upDownToNature = {};
+    for (const [name, data] of Object.entries(natureMap)) {
+        const key = (data.up || 'none') + '_' + (data.down || 'none');
+        upDownToNature[key] = name;
+    }
+    const attributes = [
+        { key: 'hp', label: '体力', lyMax: 50, noNature: true },
+        { key: 'atk', label: '攻击', lyMax: 30 },
+        { key: 'def', label: '防御', lyMax: 30 },
+        { key: 'spa', label: '法术', lyMax: 30 },
+        { key: 'spd', label: '抗性', lyMax: 30 },
+        { key: 'spe', label: '速度', lyMax: 30 }
+    ];
+
+    function getStarHTML(iv) {
+    if (iv >= 31) return '<span class="star-level" style="color: #6AF4F4;">★★★★★</span>';
+    if (iv >= 27) return '<span class="star-level" style="color: #FFE300;">★★★★★</span>';
+    if (iv >= 18) return '<span class="star-level" style="color: #FFE300;">★★★★</span>';
+    if (iv >= 12) return '<span class="star-level" style="color: #FFE300;">★★★</span>';
+    if (iv >= 6) return '<span class="star-level" style="color: #FFE300;">★★</span>';
+    return '<span class="star-level" style="color: #FFE300;">★</span>';
+    }
+
+    function computeStat(attrKey, base, iv, ev, ly, level, mods) {
+        const evDiv4 = ev / 4;
+        const core = base * 2 + iv;
+        const levelFactor = core * level / 100;
+        let raw;
+        if (attrKey === 'hp') {
+            raw = levelFactor + evDiv4 + level + 10;
+        } else {
+            raw = levelFactor + evDiv4 + 5;
+        }
+        let afterNature;
+        if (attrKey === 'hp') {
+            afterNature = raw;
+        } else {
+            if (attrKey === 'atk') afterNature = raw * mods.atk;
+            else if (attrKey === 'def') afterNature = raw * mods.def;
+            else if (attrKey === 'spa') afterNature = raw * mods.spa;
+            else if (attrKey === 'spd') afterNature = raw * mods.spd;
+            else if (attrKey === 'spe') afterNature = raw * mods.spe;
+        }
+        let final = Math.floor(afterNature);
+        final += ly;
+        return final;
+    }
+
+    function computeLimit(attrKey, base, level) {
+        const iv = 31;
+        const ev = 255;
+        const ly = (attrKey === 'hp') ? 50 : 30;
+        let mods;
+        if (attrKey === 'hp') {
+            mods = { atk:1.0, def:1.0, spa:1.0, spd:1.0, spe:1.0 };
+        } else {
+            mods = { atk:1.0, def:1.0, spa:1.0, spd:1.0, spe:1.0 };
+            mods[attrKey] = 1.1;
+        }
+        return computeStat(attrKey, base, iv, ev, ly, level, mods);
+    }
+
+    // ---------- 多卡数据 ----------
+    let pokemonCards = [];
+    let nextCardId = 0;
+    let pokemonList = [];
+
+    function createDefaultCard() {
+        const id = nextCardId++;
+        return {
+            id: id,
+            lastRemoveAttrKey: null,
+            name: '', number: '', type: '',
+            remark: '', // 新增备注字段
+            level: 100,
+            nature: '坦率',
+            natureUp: '',
+            natureDown: '',
+            checked: false,
+            removeTip: '',
+            evTotal: 0,
+            hp: { race:120, iv:31, ev:0, ly:0, multi:null, final:0, limit:0, fracNum:'', fracDen:'', fracResult:'' },
+            atk: { race:120, iv:31, ev:0, ly:0, multi:1, final:0, limit:0 },
+            def: { race:100, iv:31, ev:0, ly:0, multi:1, final:0, limit:0 },
+            spa: { race:120, iv:31, ev:0, ly:0, multi:1, final:0, limit:0 },
+            spd: { race:100, iv:31, ev:0, ly:0, multi:1, final:0, limit:0 },
+            spe: { race:110, iv:31, ev:0, ly:0, multi:1, final:0, limit:0 }
+        };
+    }
+
+    function recalcCard(card) {
+        const level = card.level;
+        const mods = natureMap[card.nature] || natureMap['坦率'];
+        let totalEV = 0;
+        attributes.forEach(attr => totalEV += card[attr.key].ev);
+        card.evTotal = totalEV;
+
+        attributes.forEach(attr => {
+            let base = Math.min(400, Math.max(0, card[attr.key].race));
+            let iv = Math.min(31, Math.max(0, card[attr.key].iv));
+            let ev = Math.min(255, Math.max(0, card[attr.key].ev));
+            let ly = card[attr.key].ly;
+            const lyMax = attr.key === 'hp' ? 50 : 30;
+            ly = Math.min(lyMax, Math.max(0, ly));
+            card[attr.key].ly = ly;
+
+            const result = computeStat(attr.key, base, iv, ev, ly, level, mods);
+            card[attr.key].final = result;
+            card[attr.key].limit = computeLimit(attr.key, base, level);
+
+            if (attr.key !== 'hp') {
+                let multi = card[attr.key].multi;
+                if (multi === undefined || multi < 0) multi = 1;
+                card[attr.key].fieldVal = Math.floor(result * multi);
+            } else {
+                const num = parseInt(card.hp.fracNum);
+                const den = parseInt(card.hp.fracDen);
+                if (!isNaN(num) && !isNaN(den) && den !== 0) {
+                    card.hp.fracResult = `= ${Math.floor(result * num / den)}`;
+                } else {
+                    card.hp.fracResult = '';
+                }
+            }
+        });
+
+        const totalRace = attributes.reduce((sum, attr) => sum + card[attr.key].race, 0);
+        card.totalRace = totalRace;
+        // 如果之前点击过属性，重新计算去属性后的种族值
+        if (card.lastRemoveAttrKey) {
+            const key = card.lastRemoveAttrKey;
+            const total = attributes.reduce((sum, attr) => sum + card[attr.key].race, 0);
+            const attrRace = card[key].race;
+            const removed = total - attrRace;
+            const labelText = attributes.find(a => a.key === key).label;
+            card.removeTip = `去${labelText}后种族值: ${removed}`;
+        }
+    }
+
+    // 更新卡片显示（不重新构建输入框）
+    function updateCardDisplay(card, cardDiv) {
+        // 头部
+        cardDiv.querySelector('.total-race strong').textContent = card.totalRace || 0;
+        cardDiv.querySelector('.remove-tip').textContent = card.removeTip || '去?后: 0';
+        const evSpan = cardDiv.querySelector('.ev-warning');
+        evSpan.textContent = `修为 ${card.evTotal}/510`;
+        if (card.evTotal > 510) {
+            evSpan.style.background = '#ffded0';
+            evSpan.style.color = '#b13e3e';
+        } else {
+            evSpan.style.background = '#fff9e6';
+            evSpan.style.color = '#b45f1b';
+        }
+
+        // 性格下拉
+        cardDiv.querySelector('.nature-up').value = card.natureUp || '';
+        cardDiv.querySelector('.nature-down').value = card.natureDown || '';
+        cardDiv.querySelector('.nature-select').value = card.nature;
+
+        // 属性行
+        attributes.forEach(attr => {
+            const row = Array.from(cardDiv.querySelectorAll('.stat-row')).find(r =>
+                r.querySelector('.stat-label')?.dataset.key === attr.key
+            );
+            if (!row) return;
+            const a = card[attr.key];
+            const resultBadge = row.querySelector('.result-badge');
+            if (resultBadge) resultBadge.innerHTML = `${a.final}<small>${attr.label}</small>`;
+            const limitBadge = row.querySelector('.limit-badge');
+            if (limitBadge) limitBadge.textContent = `极限:${a.limit}`;
+            const starSpan = row.querySelector('.star-level');
+            if (starSpan) starSpan.innerHTML = getStarHTML(a.iv);
+            if (attr.key === 'hp') {
+                const fracResult = row.querySelector('.frac-result');
+                if (fracResult) fracResult.textContent = a.fracResult || '';
+            } else {
+                const fieldResult = row.querySelector('.field-result');
+                if (fieldResult) fieldResult.textContent = `场地:${a.fieldVal || 0}`;
+            }
+        });
+    }
+
+    // 同步卡片内所有输入框的值（用于恢复默认后）
+    function syncCardInputs(card, cardDiv) {
+        cardDiv.querySelector('.card-name').value = card.name;
+        cardDiv.querySelector('.card-number').value = card.number;
+        cardDiv.querySelector('.card-type').value = card.type;
+        const remarkInput = cardDiv.querySelector('.card-remark');
+        if (remarkInput) remarkInput.value = card.remark || '';
+        cardDiv.querySelector('.card-level').value = card.level;
+
+        attributes.forEach(attr => {
+            const row = Array.from(cardDiv.querySelectorAll('.stat-row')).find(r =>
+                r.querySelector('.stat-label')?.dataset.key === attr.key
+            );
+            if (!row) return;
+            const a = card[attr.key];
+            row.querySelector(`.race-${attr.key}`).value = a.race;
+            row.querySelector(`.iv-${attr.key}`).value = a.iv;
+            row.querySelector(`.ev-${attr.key}`).value = a.ev;
+            row.querySelector(`.ly-${attr.key}`).value = a.ly;
+            if (attr.key !== 'hp') {
+                row.querySelector(`.multi-${attr.key}`).value = a.multi;
+            } else {
+                const num = row.querySelector('.frac-num');
+                const den = row.querySelector('.frac-den');
+                if (num) num.value = a.fracNum || '';
+                if (den) den.value = a.fracDen || '';
+            }
+        });
+    }
+
+    function renderCards() {
+        const container = document.getElementById('cardsContainer');
+        if (!container) return;
+        let html = '';
+        pokemonCards.forEach((card, idx) => {
+            html += `<div class="pokemon-card" data-card-idx="${idx}">`;
+            // 头部
+            html += `<div class="card-header">`;
+            html += `<input type="checkbox" class="card-checkbox" data-idx="${idx}" ${card.checked ? 'checked' : ''}>`;
+            html += `<input type="text" class="card-name" value="${card.name}" placeholder="名称" style="width:80px;" data-idx="${idx}">`;
+            html += `<input type="text" class="card-number" value="${card.number}" placeholder="编号" style="width:50px;" data-idx="${idx}">`;
+            html += `<input type="text" class="card-type" value="${card.type}" placeholder="系别" style="width:60px;" data-idx="${idx}">`;
+            html += `<input type="text" class="card-remark" value="${card.remark || ''}" placeholder="备注" style="width:80px;" data-idx="${idx}">`; // 新增备注框
+            html += `<input type="number" class="card-level" value="${card.level}" min="1" max="100" style="width:60px;" data-idx="${idx}">`;
+
+            // 性格三联动
+            html += `<select class="nature-up" data-idx="${idx}" style="width:100px;">`;
+            const upOptions = ['', 'atk', 'def', 'spa', 'spd', 'spe'];
+            const upLabels = ['无增强', '攻击+10%', '防御+10%', '法术+10%', '抗性+10%', '速度+10%'];
+            for (let i=0; i<upOptions.length; i++) {
+                html += `<option value="${upOptions[i]}" ${card.natureUp === upOptions[i] ? 'selected' : ''}>${upLabels[i]}</option>`;
+            }
+            html += `</select>`;
+            html += `<span>/</span>`;
+            html += `<select class="nature-down" data-idx="${idx}" style="width:100px;">`;
+            const downOptions = ['', 'atk', 'def', 'spa', 'spd', 'spe'];
+            const downLabels = ['无减弱', '攻击-10%', '防御-10%', '法术-10%', '抗性-10%', '速度-10%'];
+            for (let i=0; i<downOptions.length; i++) {
+                html += `<option value="${downOptions[i]}" ${card.natureDown === downOptions[i] ? 'selected' : ''}>${downLabels[i]}</option>`;
+            }
+            html += `</select>`;
+
+            html += `<select class="nature-select" data-idx="${idx}" style="width:60px;">`;
+            const natureNames = Object.keys(natureMap);
+            natureNames.forEach(name => {
+                html += `<option value="${name}" ${card.nature === name ? 'selected' : ''}>${name}</option>`;
+            });
+            html += `</select>`;
+
+            html += `<span class="total-race">总种族: <strong>${card.totalRace || 0}</strong></span>`;
+            html += `<span class="remove-tip" data-remove-idx="${idx}">${card.removeTip || '去?后: 0'}</span>`;
+            html += `<span class="ev-warning" data-evidx="${idx}">修为 ${card.evTotal || 0}/510</span>`;
+
+            // 行内小按钮
+            html += `<button class="btn small clear-race" data-idx="${idx}">清种族</button>`;
+            html += `<button class="btn small clear-star" data-idx="${idx}">清星星</button>`;
+            html += `<button class="btn small clear-ev" data-idx="${idx}">清修为</button>`;
+            html += `<button class="btn small clear-ly" data-idx="${idx}">清灵玉</button>`;
+            html += `<button class="btn small reset-blue" data-idx="${idx}">重置蓝星</button>`;
+            html += `<button class="btn small reset-field" data-idx="${idx}">重置场地</button>`;
+            html += `<button class="btn small reset-default" data-idx="${idx}">恢复默认</button>`;
+            html += `<button class="btn small copy-info" data-idx="${idx}">复制信息</button>`; // V1.6新增复制按钮
+            html += `<button class="btn small delete-card" data-idx="${idx}">删除卡片</button>`;
+            html += `</div>`;
+
+            // 属性行
+            attributes.forEach(attr => {
+                const a = card[attr.key];
+                html += `<div class="stat-row">`;
+                html += `<span class="stat-label" data-key="${attr.key}" data-idx="${idx}">${attr.label}</span>`;
+
+                html += `<div class="input-mini"><span>种族</span><input type="number" class="race-${attr.key}" value="${a.race}" min="0" max="400" step="1" data-idx="${idx}" style="width:50px;"></div>`;
+                html += `<div class="input-mini"><span>星星</span><input type="number" class="iv-${attr.key}" value="${a.iv}" min="0" max="31" step="1" data-idx="${idx}" style="width:45px;">${getStarHTML(a.iv)}</div>`;
+                html += `<div class="input-mini"><span>修为</span><input type="number" class="ev-${attr.key}" value="${a.ev}" min="0" max="255" step="1" data-idx="${idx}" style="width:50px;"></div>`;
+                html += `<div class="input-mini"><span>灵玉</span><input type="number" class="ly-${attr.key}" value="${a.ly}" min="0" max="${attr.lyMax}" step="1" data-idx="${idx}" style="width:45px;"></div>`;
+
+                if (attr.key === 'hp') {
+                    html += `<div class="fraction-box">`;
+                    html += `<input type="number" class="frac-num" placeholder="分子" value="${a.fracNum || ''}" data-idx="${idx}" style="width:60px;">`;
+                    html += `<span>/</span>`;
+                    html += `<input type="number" class="frac-den" placeholder="分母" value="${a.fracDen || ''}" data-idx="${idx}" style="width:60px;">`;
+                    html += `<span class="frac-result">${a.fracResult || ''}</span>`;
+                    html += `</div>`;
+                } else {
+                    html += `<div class="field-multiplier">`;
+                    html += `<span>场地倍数</span>`;
+                    html += `<input type="text" class="multi-${attr.key}" value="${a.multi || 1}" data-idx="${idx}" style="width:45px;">`;
+                    html += `<span class="field-result">场地能力值:${a.fieldVal || 0}</span>`;
+                    html += `</div>`;
+                }
+
+                html += `<div class="result-badge">${a.final}<small>${attr.label}</small></div>`;
+                html += `<div class="limit-badge">极限:${a.limit}</div>`;
+                html += `</div>`;
+            });
+
+            html += `</div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // 事件处理
+    function handleCardInput(e) {
+        const target = e.target;
+        const cardDiv = target.closest('.pokemon-card');
+        if (!cardDiv) return;
+        const idx = cardDiv.dataset.cardIdx;
+        if (idx === undefined) return;
+        const card = pokemonCards[idx];
+        if (!card) return;
+
+        if (target.classList.contains('card-name')) card.name = target.value;
+        else if (target.classList.contains('card-number')) card.number = target.value;
+        else if (target.classList.contains('card-type')) card.type = target.value;
+        else if (target.classList.contains('card-remark')) card.remark = target.value; // 备注处理
+        else if (target.classList.contains('card-level')) {
+            let v = parseInt(target.value);
+            if (isNaN(v) || v<1) v=1; if (v>100) v=100;
+            card.level = v;
+            target.value = v;
+        }
+        else if (target.classList.contains('nature-up')) {
+            card.natureUp = target.value;
+            const down = card.natureDown || 'none';
+            const key = (card.natureUp || 'none') + '_' + down;
+            const matched = upDownToNature[key];
+            if (matched) card.nature = matched;
+            else card.nature = '坦率';
+        }
+        else if (target.classList.contains('nature-down')) {
+            card.natureDown = target.value;
+            const up = card.natureUp || 'none';
+            const key = up + '_' + (card.natureDown || 'none');
+            const matched = upDownToNature[key];
+            if (matched) card.nature = matched;
+            else card.nature = '坦率';
+        }
+        else if (target.classList.contains('nature-select')) {
+            card.nature = target.value;
+            const data = natureMap[card.nature];
+            if (data) {
+                card.natureUp = data.up || '';
+                card.natureDown = data.down || '';
+            }
+        }
+        else if (target.classList.contains('card-checkbox')) {
+            card.checked = target.checked;
+        }
+        else {
+            for (let attr of attributes) {
+                if (target.classList.contains(`race-${attr.key}`)) {
+                    let v = parseInt(target.value); if (isNaN(v)) v=0;
+                    v = Math.min(400, Math.max(0, v));
+                    card[attr.key].race = v;
+                    target.value = v;
+                    break;
+                }
+                if (target.classList.contains(`iv-${attr.key}`)) {
+                    let v = parseInt(target.value); if (isNaN(v)) v=0;
+                    v = Math.min(31, Math.max(0, v));
+                    card[attr.key].iv = v;
+                    target.value = v;
+                    break;
+                }
+                if (target.classList.contains(`ev-${attr.key}`)) {
+                    let newVal = parseInt(target.value); if (isNaN(newVal)) newVal=0;
+                    newVal = Math.min(255, Math.max(0, newVal));
+                    const oldVal = card[attr.key].ev;
+                    card[attr.key].ev = newVal;
+                    let total = 0;
+                    attributes.forEach(a => total += card[a.key].ev);
+                    if (total > 510) {
+                        card[attr.key].ev = oldVal;
+                        target.value = oldVal;
+                    } else {
+                        card[attr.key].ev = newVal;
+                        target.value = newVal;
+                    }
+                    break;
+                }
+                if (target.classList.contains(`ly-${attr.key}`)) {
+                    let newVal = parseInt(target.value); if (isNaN(newVal)) newVal=0;
+                    const max = attr.key==='hp'?50:30;
+                    newVal = Math.min(max, Math.max(0, newVal));
+                    const oldVal = card[attr.key].ly;
+                    card[attr.key].ly = newVal;
+                    let nonZero = 0;
+                    attributes.forEach(a => { if (card[a.key].ly > 0) nonZero++; });
+                    if (nonZero > 4) {
+                        card[attr.key].ly = oldVal;
+                        target.value = oldVal;
+                    } else {
+                        card[attr.key].ly = newVal;
+                        target.value = newVal;
+                    }
+                    break;
+                }
+				if (target.classList.contains(`multi-${attr.key}`) && attr.key !== 'hp') {
+                    let v = parseFloat(target.value);
+                    if (isNaN(v) || v < 0) {
+                        v = 1;                     // 无效输入时设为默认值
+                        target.value = v;          // 仅在无效时强制修正
+                    } else {
+                        card[attr.key].multi = v;   // 只保存值，不修改输入框内容
+                    }
+                    break;
+				}			
+            }
+            if (target.classList.contains('frac-num')) {
+                card.hp.fracNum = target.value;
+            }
+            if (target.classList.contains('frac-den')) {
+                card.hp.fracDen = target.value;
+            }
+        }
+
+        recalcCard(card);
+        updateCardDisplay(card, cardDiv);
+    }
+
+    function handleCardClick(e) {
+        const target = e.target;
+        if (!target.classList.contains('btn')) return;
+        const cardDiv = target.closest('.pokemon-card');
+        if (!cardDiv) return;
+        const idx = cardDiv.dataset.cardIdx;
+        if (idx === undefined) return;
+        const card = pokemonCards[idx];
+        if (!card) return;
+
+        if (target.classList.contains('clear-race')) {
+            attributes.forEach(attr => card[attr.key].race = 0);
+        } else if (target.classList.contains('clear-star')) {
+            attributes.forEach(attr => card[attr.key].iv = 0);
+        } else if (target.classList.contains('clear-ev')) {
+            attributes.forEach(attr => card[attr.key].ev = 0);
+        } else if (target.classList.contains('clear-ly')) {
+            attributes.forEach(attr => card[attr.key].ly = 0);
+        } else if (target.classList.contains('reset-blue')) {
+            attributes.forEach(attr => card[attr.key].iv = 31);
+        } else if (target.classList.contains('reset-field')) {
+            attributes.forEach(attr => {
+                if (attr.key !== 'hp') card[attr.key].multi = 1;
+            });
+        } else if (target.classList.contains('reset-default')) {
+            // 恢复默认值
+            card.name = ''; card.number = ''; card.type = ''; card.level = 100;
+            card.nature = '坦率'; card.natureUp = ''; card.natureDown = '';
+            card.checked = false;
+            card.removeTip = '';
+            card.remark = ''; // 重置备注
+            card.lastRemoveAttrKey = null;
+            card.hp = { race:120, iv:31, ev:0, ly:0, multi:null, final:0, limit:0, fracNum:'', fracDen:'', fracResult:'' };
+            card.atk = { race:120, iv:31, ev:0, ly:0, multi:1, final:0, limit:0 };
+            card.def = { race:100, iv:31, ev:0, ly:0, multi:1, final:0, limit:0 };
+            card.spa = { race:120, iv:31, ev:0, ly:0, multi:1, final:0, limit:0 };
+            card.spd = { race:100, iv:31, ev:0, ly:0, multi:1, final:0, limit:0 };
+            card.spe = { race:110, iv:31, ev:0, ly:0, multi:1, final:0, limit:0 };
+            recalcCard(card);
+            syncCardInputs(card, cardDiv);
+            updateCardDisplay(card, cardDiv);
+            return;
+        } else if (target.classList.contains('copy-info')) {
+            // 复制名称、编号、系别、六维种族值
+            const line = [
+                card.name,
+                card.number,
+                card.type,
+                card.hp.race,
+                card.atk.race,
+                card.def.race,
+                card.spa.race,
+                card.spd.race,
+                card.spe.race
+            ].join('\t');
+            navigator.clipboard.writeText(line).then(() => {
+                alert('复制成功，可直接粘贴到数据库表格');
+            }).catch(() => {
+                prompt('手动复制以下内容（制表符分隔）', line);
+            });
+            return;
+        } else if (target.classList.contains('delete-card')) {
+            pokemonCards.splice(idx, 1);
+            renderCards();
+            return;
+        } else {
+            return;
+        }
+        recalcCard(card);
+        syncCardInputs(card, cardDiv);
+        updateCardDisplay(card, cardDiv);
+    }
+
+    function handleStatLabelClick(e) {
+        const label = e.target.closest('.stat-label');
+        if (!label) return;
+        const cardDiv = label.closest('.pokemon-card');
+        if (!cardDiv) return;
+        const idx = cardDiv.dataset.cardIdx;
+        if (idx === undefined) return;
+        const card = pokemonCards[idx];
+        const key = label.dataset.key;
+        const total = attributes.reduce((sum, attr) => sum + card[attr.key].race, 0);
+        const attrRace = card[key].race;
+        const removed = total - attrRace;
+        const labelText = attributes.find(a => a.key === key).label;
+        card.removeTip = `去${labelText}后种族值: ${removed}`;
+        card.lastRemoveAttrKey = key;
+        updateCardDisplay(card, cardDiv);
+    }
+
+    // 新增：全选/全不选功能
+    function toggleSelectAll() {
+        if (pokemonCards.length === 0) return;
+        const allChecked = pokemonCards.every(card => card.checked);
+        const newState = !allChecked;
+        pokemonCards.forEach(card => card.checked = newState);
+        document.querySelectorAll('.pokemon-card .card-checkbox').forEach(cb => cb.checked = newState);
+    }
+
+    function initGlobalButtons() {
+        document.getElementById('addCardBtn').addEventListener('click', () => {
+            pokemonCards.push(createDefaultCard());
+            recalcCard(pokemonCards[pokemonCards.length-1]);
+            renderCards();
+        });
+        document.getElementById('clearAllCardsBtn').addEventListener('click', () => {
+            pokemonCards = [];
+            nextCardId = 0;
+            renderCards();
+        });
+        document.getElementById('importExcelBtn').addEventListener('click', importExcel);
+        document.getElementById('exportSelectedBtn').addEventListener('click', exportSelected);
+        // 新增：全选/全不选按钮监听
+        document.getElementById('toggleSelectAllBtn').addEventListener('click', toggleSelectAll);
+		// 新增：官方的数据
+		document.getElementById('loadOfficialBtn').addEventListener('click', loadFromOfficial);
+    }
+	
+	function loadFromOfficial() {
+		// 从本地 all_pokemon.json 加载数据
+		fetch('all_pokemon.json')
+        .then(res => {
+            if (!res.ok) throw new Error('all_pokemon.json 不存在或无法访问，请确认文件已上传');
+            return res.json();
+        })
+        .then(data => {
+            // data 是数组，每个元素包含 name, id, type, hp, atk, def, spa, spd, spe
+            pokemonList = data.map(p => ({
+                name: p.name || '',
+                id: p.id || '',
+                type: p.type || '',
+                hp: p.hp || 0,
+                atk: p.atk || 0,
+                def: p.def || 0,
+                spa: p.spa || 0,
+                spd: p.spd || 0,
+                spe: p.spe || 0,
+                remark: '',
+                nature: '',
+                iv: { hp:31, atk:31, def:31, spa:31, spd:31, spe:31 },
+                ev: { hp:0, atk:0, def:0, spa:0, spd:0, spe:0 },
+                ly: { hp:0, atk:0, def:0, spa:0, spd:0, spe:0 }
+            }));
+            if (pokemonList.length === 0) {
+                alert('没有加载到妖怪数据');
+                return;
+            }
+            // 调用已有的选择器界面
+            showPokemonSelector();
+        })
+        .catch(err => {
+            alert('加载 JSON 失败：' + err.message);
+        });
+	}
+
+    // 导入导出函数（保持不变，仅修改添加新卡片逻辑已在内部实现）
+    function importExcel() {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.xlsx, .xls, .csv';
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (loadEvent) => {
+                try {
+                    const data = new Uint8Array(loadEvent.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    if (rows.length < 2) { alert('表格中没有数据'); return; }
+
+                    // 判断是否为完整配置表（通过表头是否包含“备注”和“体力星星”）
+                    const headers = rows[0] || [];
+                    const isFullConfig = headers.some(h => h && h.includes('备注')) && 
+                                         headers.some(h => h && h.includes('体力星星'));
+
+                    pokemonList = [];
+
+                    if (isFullConfig) {
+                        // 建立列名到索引的映射
+                        const colMap = {};
+                        headers.forEach((h, idx) => { if (h) colMap[h.trim()] = idx; });
+
+                        // 必需列的映射（若缺少则使用默认值）
+                        const getVal = (row, colName, def = '') => 
+                            colMap[colName] !== undefined ? (row[colMap[colName]]?.toString().trim() || def) : def;
+                        const getInt = (row, colName, def = 0) => 
+                            colMap[colName] !== undefined ? (parseInt(row[colMap[colName]]) || def) : def;
+
+                        for (let i = 1; i < rows.length; i++) {
+                            const row = rows[i];
+                            if (!row) continue;
+
+                            const name = getVal(row, '名称');
+                            const id = getVal(row, '图鉴编号');
+                            const type = getVal(row, '系别名称');
+                            const nature = getVal(row, '性格');
+                            const remark = getVal(row, '备注');
+
+                            // 种族值
+                            const hp = getInt(row, '体力');
+                            const atk = getInt(row, '攻击');
+                            const def = getInt(row, '防御');
+                            const spa = getInt(row, '法术');
+                            const spd = getInt(row, '抗性');
+                            const spe = getInt(row, '速度');
+
+                            // 星星
+                            const hpIv = getInt(row, '体力星星', 31);
+                            const atkIv = getInt(row, '攻击星星', 31);
+                            const defIv = getInt(row, '防御星星', 31);
+                            const spaIv = getInt(row, '法术星星', 31);
+                            const spdIv = getInt(row, '抗性星星', 31);
+                            const speIv = getInt(row, '速度星星', 31);
+
+                            // 修为
+                            const hpEv = getInt(row, '体力修为');
+                            const atkEv = getInt(row, '攻击修为');
+                            const defEv = getInt(row, '防御修为');
+                            const spaEv = getInt(row, '法术修为');
+                            const spdEv = getInt(row, '抗性修为');
+                            const speEv = getInt(row, '速度修为');
+
+                            // 灵玉
+                            const hpLy = getInt(row, '体力灵玉');
+                            const atkLy = getInt(row, '攻击灵玉');
+                            const defLy = getInt(row, '防御灵玉');
+                            const spaLy = getInt(row, '法术灵玉');
+                            const spdLy = getInt(row, '抗性灵玉');
+                            const speLy = getInt(row, '速度灵玉');
+
+                            pokemonList.push({
+                                name, id, type,
+                                hp, atk, def, spa, spd, spe,   // 基础种族（用于显示）
+                                nature, remark,                 // 性格和备注
+                                iv: { hp: hpIv, atk: atkIv, def: defIv, spa: spaIv, spd: spdIv, spe: speIv },
+                                ev: { hp: hpEv, atk: atkEv, def: defEv, spa: spaEv, spd: spdEv, spe: speEv },
+                                ly: { hp: hpLy, atk: atkLy, def: defLy, spa: spaLy, spd: spdLy, spe: speLy }
+                            });
+                        }
+                    } else {
+                        // 原有简单表格解析（9列）
+                        const colIndex = { name:0, id:1, type:2, hp:3, atk:4, def:5, spa:6, spd:7, spe:8 };
+                        for (let i=1; i<rows.length; i++) {
+                            const row = rows[i];
+                            if (!row || row.length < 9) continue;
+                            pokemonList.push({
+                                name: row[colIndex.name]?.toString().trim() || '未知',
+                                id: row[colIndex.id]?.toString().trim() || '',
+                                type: row[colIndex.type]?.toString().trim() || '',
+                                hp: parseInt(row[colIndex.hp]) || 0,
+                                atk: parseInt(row[colIndex.atk]) || 0,
+                                def: parseInt(row[colIndex.def]) || 0,
+                                spa: parseInt(row[colIndex.spa]) || 0,
+                                spd: parseInt(row[colIndex.spd]) || 0,
+                                spe: parseInt(row[colIndex.spe]) || 0
+                            });
+                        }
+                    }
+
+                    if (pokemonList.length === 0) { alert('没有有效数据'); return; }
+                    showPokemonSelector();
+                } catch (err) { alert('解析失败：'+err.message); }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+        fileInput.click();
+    }
+
+    function showPokemonSelector() {
+        const oldDiv = document.getElementById('pokemonSelector');
+        if (oldDiv) oldDiv.remove();
+
+        const selectorDiv = document.createElement('div');
+        selectorDiv.id = 'pokemonSelector';
+        selectorDiv.style.margin = '15px 0 10px 0';
+        selectorDiv.style.padding = '12px 18px';
+        selectorDiv.style.background = '#e1edfe';
+        selectorDiv.style.borderRadius = '8px';
+        selectorDiv.style.border = '1px solid #8fb0e8';
+
+        // 筛选行
+        const filterRow = document.createElement('div');
+        filterRow.style.display = 'flex';
+        filterRow.style.flexWrap = 'wrap';
+        filterRow.style.gap = '12px';
+        filterRow.style.marginBottom = '12px';
+        filterRow.style.alignItems = 'center';
+
+        const typeDiv = document.createElement('div');
+        typeDiv.className = 'input-group';
+        typeDiv.style.width = '180px';
+        const typeLabel = document.createElement('label');
+        typeLabel.textContent = '系别筛选';
+        const typeSelect = document.createElement('select');
+        typeSelect.id = 'typeFilter';
+        typeSelect.style.width = '100%';
+        const typeSet = new Set();
+        let hasEmptyType = false;
+        pokemonList.forEach(p => {
+            const t = p.type ? p.type.trim() : '';
+            if (t === '') hasEmptyType = true; else typeSet.add(t);
+        });
+        const sortedTypes = Array.from(typeSet).sort((a,b) => a.localeCompare(b, 'zh'));
+        const allOption = document.createElement('option'); allOption.value = 'ALL'; allOption.textContent = '全部系别'; typeSelect.appendChild(allOption);
+        sortedTypes.forEach(t => { const opt = document.createElement('option'); opt.value = t; opt.textContent = t; typeSelect.appendChild(opt); });
+        if (hasEmptyType) { const opt = document.createElement('option'); opt.value = ''; opt.textContent = '未指定'; typeSelect.appendChild(opt); }
+        typeDiv.appendChild(typeLabel); typeDiv.appendChild(typeSelect);
+
+        const searchDiv = document.createElement('div');
+        searchDiv.className = 'input-group';
+        searchDiv.style.flex = '1';
+        searchDiv.style.minWidth = '220px';
+        const searchLabel = document.createElement('label'); searchLabel.textContent = '名称或编号';
+        const searchInput = document.createElement('input'); searchInput.type = 'text'; searchInput.id = 'searchFilter'; searchInput.placeholder = '输入关键字...'; searchInput.style.width = '100%';
+        searchDiv.appendChild(searchLabel); searchDiv.appendChild(searchInput);
+
+        const countSpan = document.createElement('span'); countSpan.id = 'filterCount'; countSpan.style.background = '#ffffff'; countSpan.style.padding = '4px 12px'; countSpan.style.borderRadius = '16px'; countSpan.style.border = '1px solid #4294DC'; countSpan.style.fontSize = '0.9rem'; countSpan.style.fontWeight = '500'; countSpan.style.color = '#103e6b';
+        filterRow.appendChild(typeDiv); filterRow.appendChild(searchDiv); filterRow.appendChild(countSpan);
+        selectorDiv.appendChild(filterRow);
+
+        const selectRow = document.createElement('div');
+        selectRow.style.display = 'flex'; selectRow.style.flexWrap = 'wrap'; selectRow.style.alignItems = 'center'; selectRow.style.gap = '12px';
+        const label = document.createElement('span'); label.textContent = '选择妖怪：'; label.style.fontWeight = '600'; label.style.color = '#103e6b';
+        const select = document.createElement('select'); select.id = 'pokemonSelect'; select.style.padding = '8px 12px'; select.style.borderRadius = '6px'; select.style.border = '1px solid #4294DC'; select.style.minWidth = '400px'; select.style.fontSize = '0.95rem'; select.style.flex = '1';
+        selectRow.appendChild(label); selectRow.appendChild(select);
+        selectorDiv.appendChild(selectRow);
+
+        const btnRow = document.createElement('div');
+        btnRow.style.display = 'flex'; btnRow.style.gap = '12px'; btnRow.style.marginTop = '12px'; btnRow.style.flexWrap = 'wrap';
+        const fillBtn = document.createElement('button'); fillBtn.className = 'btn small'; fillBtn.textContent = '添加此妖怪卡片';
+        const closeBtn = document.createElement('button'); closeBtn.className = 'btn small'; closeBtn.textContent = '关闭';
+        btnRow.appendChild(fillBtn); btnRow.appendChild(closeBtn);
+        selectorDiv.appendChild(btnRow);
+
+        // 排行榜（与之前相同）
+        const rankDiv = document.createElement('div');
+        rankDiv.style.marginTop = '20px'; rankDiv.style.borderTop = '2px solid #9bb9e5'; rankDiv.style.paddingTop = '15px';
+        const rankTitle = document.createElement('div'); rankTitle.style.fontWeight = 'bold'; rankTitle.style.marginBottom = '10px'; rankTitle.style.fontSize = '1.2rem'; rankTitle.textContent = '📊 排行榜 (前100名)';
+        rankDiv.appendChild(rankTitle);
+        const btnGroup = document.createElement('div'); btnGroup.style.display = 'flex'; btnGroup.style.flexWrap = 'wrap'; btnGroup.style.gap = '8px'; btnGroup.style.marginBottom = '12px';
+        const dimensions = [ {key:'hp',label:'体力'}, {key:'atk',label:'攻击'}, {key:'def',label:'防御'}, {key:'spa',label:'法术'}, {key:'spd',label:'抗性'}, {key:'spe',label:'速度'}, {key:'total',label:'总种族'}, {key:'effective',label:'有效种族'} ];
+        dimensions.forEach(d => { const btn = document.createElement('button'); btn.className = 'btn small'; btn.textContent = d.label; btn.dataset.dim = d.key; btnGroup.appendChild(btn); });
+        rankDiv.appendChild(btnGroup);
+        const tableContainer = document.createElement('div'); tableContainer.id = 'rankTableContainer'; tableContainer.style.maxHeight = '300px'; tableContainer.style.overflowY = 'auto'; tableContainer.style.background = '#FFFFFF'; tableContainer.style.border = '1px solid #bed3f0'; tableContainer.style.borderRadius = '6px'; tableContainer.style.padding = '5px';
+        rankDiv.appendChild(tableContainer);
+        selectorDiv.appendChild(rankDiv);
+
+        // ========== 新增：全选相关变量与函数 ==========
+        let currentFilteredIndices = []; // 用于存储当前筛选结果
+
+        // 辅助函数：根据妖怪数据创建卡片
+        function addPokemon(p) {
+            if (!p) return;
+            const newCard = createDefaultCard();
+            // 基础信息
+            newCard.name = p.name || '';
+            newCard.number = p.id || '';
+            newCard.type = p.type || '';
+            newCard.remark = p.remark || '';
+            // 种族值
+            newCard.hp.race = p.hp;
+            newCard.atk.race = p.atk;
+            newCard.def.race = p.def;
+            newCard.spa.race = p.spa;
+            newCard.spd.race = p.spd;
+            newCard.spe.race = p.spe;
+            // 性格（如果有）
+            if (p.nature && natureMap[p.nature]) {
+                newCard.nature = p.nature;
+                newCard.natureUp = natureMap[p.nature].up || '';
+                newCard.natureDown = natureMap[p.nature].down || '';
+            }
+            // 星星、修为、灵玉（如果有详细对象）
+            if (p.iv) {
+                newCard.hp.iv = Math.min(31, Math.max(0, p.iv.hp || 31));
+                newCard.atk.iv = Math.min(31, Math.max(0, p.iv.atk || 31));
+                newCard.def.iv = Math.min(31, Math.max(0, p.iv.def || 31));
+                newCard.spa.iv = Math.min(31, Math.max(0, p.iv.spa || 31));
+                newCard.spd.iv = Math.min(31, Math.max(0, p.iv.spd || 31));
+                newCard.spe.iv = Math.min(31, Math.max(0, p.iv.spe || 31));
+            }
+            if (p.ev) {
+                newCard.hp.ev = Math.min(255, Math.max(0, p.ev.hp || 0));
+                newCard.atk.ev = Math.min(255, Math.max(0, p.ev.atk || 0));
+                newCard.def.ev = Math.min(255, Math.max(0, p.ev.def || 0));
+                newCard.spa.ev = Math.min(255, Math.max(0, p.ev.spa || 0));
+                newCard.spd.ev = Math.min(255, Math.max(0, p.ev.spd || 0));
+                newCard.spe.ev = Math.min(255, Math.max(0, p.ev.spe || 0));
+            }
+            if (p.ly) {
+                newCard.hp.ly = Math.min(50, Math.max(0, p.ly.hp || 0));
+                newCard.atk.ly = Math.min(30, Math.max(0, p.ly.atk || 0));
+                newCard.def.ly = Math.min(30, Math.max(0, p.ly.def || 0));
+                newCard.spa.ly = Math.min(30, Math.max(0, p.ly.spa || 0));
+                newCard.spd.ly = Math.min(30, Math.max(0, p.ly.spd || 0));
+                newCard.spe.ly = Math.min(30, Math.max(0, p.ly.spe || 0));
+            }
+            pokemonCards.push(newCard);
+            recalcCard(newCard);
+            renderCards();
+        }
+
+        // ========== 修改 updateOptions 函数，记录 currentFilteredIndices ==========
+        function updateOptions() {
+            const selectedType = typeSelect.value;
+            const searchText = searchInput.value.trim().toLowerCase();
+            const filteredIndices = [];
+            pokemonList.forEach((p, idx) => {
+                if (selectedType !== 'ALL') {
+                    const pType = p.type ? p.type.trim() : '';
+                    if (selectedType === '') { if (pType !== '') return; }
+                    else if (pType !== selectedType) return;
+                }
+                if (searchText) {
+                    if (!p.name.toLowerCase().includes(searchText) && !p.id.toLowerCase().includes(searchText)) return;
+                }
+                filteredIndices.push(idx);
+            });
+            // 保存当前筛选结果
+            currentFilteredIndices = filteredIndices;
+            countSpan.textContent = `共 ${filteredIndices.length} 只`;
+            select.innerHTML = '';
+            if (filteredIndices.length === 0) {
+                const opt = document.createElement('option'); opt.value = ''; opt.textContent = '无匹配妖怪'; opt.disabled = true; select.appendChild(opt); select.disabled = true;
+            } else {
+                select.disabled = false;
+                filteredIndices.forEach(idx => {
+                    const p = pokemonList[idx];
+                    const remarkText = p.remark ? ` 备注:${p.remark}` : '';
+                    const opt = document.createElement('option'); opt.value = idx; opt.textContent = `${p.name} [${p.id}] ${p.type || '未指定'}  (体${p.hp} 攻${p.atk} 防${p.def} 法${p.spa} 抗${p.spd} 速${p.spe})${remarkText}`;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        // ========== 修改 fillBtn 逻辑，复用 addPokemon ==========
+        fillBtn.onclick = () => {
+            const idx = select.value;
+            if (idx !== '' && pokemonList[idx]) {
+                addPokemon(pokemonList[idx]);
+            } else alert('请选择有效妖怪');
+        };
+
+        // ========== 后面新增：全选按钮 ==========
+        const selectAllBtn = document.createElement('button');
+        selectAllBtn.className = 'btn small';
+        selectAllBtn.textContent = '添加全部';
+        selectAllBtn.onclick = () => {
+            if (currentFilteredIndices.length === 0) {
+                alert('当前筛选条件下没有妖怪');
+                return;
+            }
+            if (confirm(`确定要添加全部 ${currentFilteredIndices.length} 只妖怪吗？`)) {
+                currentFilteredIndices.forEach(idx => {
+                    const p = pokemonList[idx];
+                    addPokemon(p);
+                });
+            }
+        };
+        btnRow.appendChild(selectAllBtn);
+
+        typeSelect.addEventListener('change', updateOptions);
+        searchInput.addEventListener('input', updateOptions);
+        updateOptions();
+
+        // 排行榜刷新
+        let currentDim = 'total';
+        function refreshRank(dim) {
+            currentDim = dim;
+            const selectedType = typeSelect.value;
+            const searchText = searchInput.value.trim().toLowerCase();
+            const filtered = pokemonList.filter(p => {
+                if (selectedType !== 'ALL') {
+                    const pType = p.type ? p.type.trim() : '';
+                    if (selectedType === '') { if (pType !== '') return false; }
+                    else if (pType !== selectedType) return false;
+                }
+                if (searchText) {
+                    if (!p.name.toLowerCase().includes(searchText) && !p.id.toLowerCase().includes(searchText)) return false;
+                }
+                return true;
+            });
+            const withValue = filtered.map(p => {
+                let val = 0;
+                if (dim === 'hp') val = p.hp;
+                else if (dim === 'atk') val = p.atk;
+                else if (dim === 'def') val = p.def;
+                else if (dim === 'spa') val = p.spa;
+                else if (dim === 'spd') val = p.spd;
+                else if (dim === 'spe') val = p.spe;
+                else if (dim === 'total') val = p.hp + p.atk + p.def + p.spa + p.spd + p.spe;
+                else if (dim === 'effective') {
+                    const total = p.hp + p.atk + p.def + p.spa + p.spd + p.spe;
+                    val = Math.max(total - p.atk, total - p.spa);
+                }
+                return { name: p.name, val };
+            });
+            withValue.sort((a,b) => b.val - a.val);
+            const top100 = withValue.slice(0,100);
+            let html = '<table style="width:100%; border-collapse: collapse; font-size:0.9rem;"><thead><tr style="background:#4294DC; color:white;"><th>排名</th><th>名称</th><th>数值</th></tr></thead><tbody>';
+            if (top100.length === 0) html += '<tr><td colspan="3" style="padding:20px; text-align:center;">暂无数据</td></tr>';
+            else top100.forEach((item,idx) => { html += `<tr style="border-bottom:1px solid #c0d4f0;"><td style="padding:6px; text-align:center;">${idx+1}</td><td style="padding:6px;">${item.name}</td><td style="padding:6px; text-align:right; font-weight:bold;">${item.val}</td></tr>`; });
+            html += '</tbody></table>';
+            tableContainer.innerHTML = html;
+        }
+
+        btnGroup.querySelectorAll('button').forEach(btn => btn.addEventListener('click', (e) => refreshRank(e.target.dataset.dim)));
+        typeSelect.addEventListener('change', () => refreshRank(currentDim));
+        searchInput.addEventListener('input', () => refreshRank(currentDim));
+        refreshRank('total');
+
+        closeBtn.onclick = () => selectorDiv.remove();
+
+        document.querySelector('.calculator-card').appendChild(selectorDiv);
+    }
+
+    function exportSelected() {
+        const selected = pokemonCards.filter(c => c.checked);
+        if (selected.length === 0) { alert('没有勾选任何妖怪'); return; }
+
+        const headers = [
+            '备注','名称','图鉴编号','系别名称','性格',
+            '体力','攻击','防御','法术','抗性','速度',
+            '体力星星','攻击星星','防御星星','法术星星','抗性星星','速度星星',
+            '体力修为','攻击修为','防御修为','法术修为','抗性修为','速度修为',
+            '体力灵玉','攻击灵玉','防御灵玉','法术灵玉','抗性灵玉','速度灵玉',
+            '体力能力','攻击能力','防御能力','法术能力','抗性能力','速度能力'
+        ];
+
+        const data = [headers];
+
+        selected.forEach(c => {
+            const row = [
+                c.remark || '',
+                c.name,
+                c.number,
+                c.type,
+                c.nature,
+                c.hp.race, c.atk.race, c.def.race, c.spa.race, c.spd.race, c.spe.race,
+                c.hp.iv, c.atk.iv, c.def.iv, c.spa.iv, c.spd.iv, c.spe.iv,
+                c.hp.ev, c.atk.ev, c.def.ev, c.spa.ev, c.spd.ev, c.spe.ev,
+                c.hp.ly, c.atk.ly, c.def.ly, c.spa.ly, c.spd.ly, c.spe.ly,
+                c.hp.final, c.atk.final, c.def.final, c.spa.final, c.spd.final, c.spe.final
+            ];
+            data.push(row);
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+        XLSX.writeFile(wb, `妖怪配置.xlsx`);
+    }
+
+    function init() {
+        pokemonCards.push(createDefaultCard());
+        recalcCard(pokemonCards[0]);
+        renderCards();
+
+        const container = document.getElementById('cardsContainer');
+        container.addEventListener('input', handleCardInput);
+        container.addEventListener('click', handleCardClick);
+        container.addEventListener('click', handleStatLabelClick);
+
+        initGlobalButtons();
+
+        document.getElementById('version').addEventListener('click', ()=>{
+            alert('V1.1更新内容\n修复了总种族值与星星显示异常，增加额外重置按钮\nV1.2更新内容\n我把1.2原件弄丢了，我也忘了更新了什么\nV1.3更新内容\n导入导出功能加强\nV1.4更新内容\n导入搜索与系别筛选\nV1.5更新内容\n新增更新日志功能，添加种族值排行榜\nV1.6更新内容\n重新调整布局，可同时编辑多个妖怪\n导入导出功能加强，可以进行配置保存\n主题色改成了卡布网页蓝，结果我感觉丑爆了\nV1.7更新内容\n简单优化导入导出功能\n新增配套的【卡布西游伤害计算器V2.0】和【妖怪顶级配置参考】，简单更新了【全妖怪数据库】\n用户可以自己简单快捷地自己更新数据库或制作自己的妖怪配置\nV1.8更新内容\n简单修复了场地倍数设置的问题\nV1.9更新内容\n可以直接导入官方数据了');
+        });
+    }
+
+    init();
+})();
+</script>
+</body>
+</html>
